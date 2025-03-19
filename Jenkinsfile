@@ -1,9 +1,9 @@
 pipeline {
     agent any
     environment {
-        DOCKER_IMAGE = "jayasurya1213/my-python-app:latest"  
+        DOCKER_IMAGE = "jayasurya111/my-python-app:latest"  
         CONTAINER_NAME = "my-python-container"
-        REGISTRY_CREDENTIALS = "devopsLearning"  
+        REGISTRY_CREDENTIALS = "docker_hub_credentials"  // Updated credential ID
     }
 
     stages {
@@ -23,7 +23,7 @@ pipeline {
 
         stage('Login to Docker Registry') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'devopsLearning', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([usernamePassword(credentialsId: 'docker_hub_credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
             }
