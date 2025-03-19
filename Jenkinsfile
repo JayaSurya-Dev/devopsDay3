@@ -1,27 +1,66 @@
 pipeline {
     agent any
+    environment {
+        DOCKER_IMAGE = "jayasurya1213/my-python-app:latest"  
+        CONTAINER_NAME = "my-python-container"
+        REGISTRY_CREDENTIALS = "devopsLearning"  
+    }
+
     stages {
         stage('Checkout Code') {
             steps {
-                checkout scm
+                withCredentials([usernamePassword(credentialsId: '24mcr041', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                    git url: "https://$GIT_USER:$GIT_TOKEN@github.com/JayaSurya-Dev/devopsDay3.git", branch: 'main'
+                }
             }
         }
-        stage('Build') {
+
+        stage('Build Docker Image') {
             steps {
-                sh 'echo Installing dependencies...'
-                sh '/usr/bin/python3 -m pip install --upgrade pip'
-                sh '/usr/bin/python3 -m pip install -r requirements.txt'
+                sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
-        stage('Test') {
+
+        stage('Login to Docker Registry') {
             steps {
-                sh 'python3 -m unittest discover tests'
+                withCredentials([usernamePassword(credentialsId: 'devopsLearning', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                }
             }
         }
-        stage('Deploy') {
+
+        stage('Push to Container Registry') {
             steps {
-                echo 'Deploying application...'
+                sh 'docker push $DOCKER_IMAGE'
             }
+        }
+
+        stage('Stop & Remove Existing Container') {
+            steps {
+                script {
+                    sh '''
+                    if [ "$(docker ps -aq -f name=$CONTAINER_NAME)" ]; then
+                        docker stop $CONTAINER_NAME || true
+                        docker rm $CONTAINER_NAME || true
+                    fi
+                    '''
+                }
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                sh 'docker run -d -p 5000:5000 --name $CONTAINER_NAME $DOCKER_IMAGE'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo "Build, push, and container execution successful!"
+        }
+        failure {
+            echo "Build or container execution failed."
         }
     }
 }
