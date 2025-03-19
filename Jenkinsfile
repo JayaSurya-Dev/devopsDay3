@@ -3,13 +3,13 @@ pipeline {
     environment {
         DOCKER_IMAGE = "jayasurya111/my-python-app:latest"  
         CONTAINER_NAME = "my-python-container"
-        REGISTRY_CREDENTIALS = "docker_hub_credentials"  // Updated credential ID
+        REGISTRY_CREDENTIALS = "docker_hub_credentials"  // Updated Docker Hub credentials ID
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                withCredentials([usernamePassword(credentialsId: '24mcr041', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                withCredentials([usernamePassword(credentialsId: 'git_Jayasurya', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
                     git url: "https://$GIT_USER:$GIT_TOKEN@github.com/JayaSurya-Dev/devopsDay3.git", branch: 'main'
                 }
             }
